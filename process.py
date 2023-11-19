@@ -92,6 +92,7 @@ def featureExtraction(resume, feature):
 
 
 resume = './test/resume_2.pdf'
+seeResume(resume)
 skills_to_check = ['Flask', 'NextJs', 'Python', 'SQL']
 calculateResume(resume,skills_to_check)
 
