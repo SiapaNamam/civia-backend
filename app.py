@@ -141,11 +141,11 @@ def hr_read_vacancy():
 #melihat semua data dari candidat berdasarkan lowongan
 @app.route('/hr/applicant/read',methods=['GET'])
 def readResume():
-    #userSkills = request.args.get('skills').split(',') if request.args.get('skills') else None
-    #lowongan = request.args.get('lowongan').split(',') if request.args.get('lowongan') else None
+    userSkills = request.args.get('skills').split(',') if request.args.get('skills') else None
+    lowongan = request.args.get('lowongan').split(',') if request.args.get('lowongan') else None
 
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * from resume")
+    cursor.execute(f"SELECT * from resume where lowongan=",lowongan)
     resumes = cursor.fetchall()
 
     result=[]
@@ -175,14 +175,14 @@ def readResume():
         }
 
         #if userSkills:
-        item['score'] = calculateResume(f'./resume/{row[20]}', ['Flask','Node Js','Python'])
+        item['score'] = calculateResume(f'./resume/{row[20]}', userSkills)
         
         result.append(item)
 
     #if userSkills:
         sortedResume = sorted(result, key=lambda x:x['score'], reverse=True)
     # else:
-        sortedResume = result
+        #sortedResume = result
 
     return jsonify({"Resumes":sortedResume})
 
