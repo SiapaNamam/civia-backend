@@ -1,4 +1,6 @@
 import secrets
+import subprocess
+import webbrowser
 from flask import Flask, jsonify, request, send_file
 from flask_mysqldb import MySQL
 import os
@@ -74,7 +76,7 @@ def count_applicant():
     cursor.execute("SELECT COUNT(*) from resume")
     countApplicant = cursor.fetchall()
 
-    return jsonify({"total pelamar":countApplicant})
+    return jsonify(countApplicant)
 
 
 #jumlah lowongan
@@ -136,15 +138,14 @@ def hr_read_vacancy():
         return jsonify({"lowongan":result})
         
 
-
 #melihat semua data dari candidat berdasarkan lowongan
-@app.route('/hr/candidate/read',methods=['GET'])
+@app.route('/hr/applicant/read',methods=['GET'])
 def readResume():
-    userSkills = request.args.get('skills').split(',') if request.args.get('skills') else None
-    lowongan = request.args.get('lowongan') if request.args.get('lowongan') else None 
+    #userSkills = request.args.get('skills').split(',') if request.args.get('skills') else None
+    #lowongan = request.args.get('lowongan').split(',') if request.args.get('lowongan') else None
 
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * from resume where lowongan =",lowongan)
+    cursor.execute("SELECT * from resume")
     resumes = cursor.fetchall()
 
     result=[]
@@ -173,21 +174,21 @@ def readResume():
             "file":row[20]
         }
 
-        if userSkills:
-            item['score'] = calculateResume(item, userSkills)
+        #if userSkills:
+        item['score'] = calculateResume(f'./resume/{row[20]}', ['Flask','Node Js','Python'])
         
         result.append(item)
 
-    if userSkills:
+    #if userSkills:
         sortedResume = sorted(result, key=lambda x:x['score'], reverse=True)
-    else:
+    # else:
         sortedResume = result
 
     return jsonify({"Resumes":sortedResume})
 
 
 #melihat detail dari satu candidat
-@app.route('/hr/candidate/detail',methods=['GET'])
+@app.route('/hr/applicant/detail',methods=['GET'])
 def detailResume():
     userSkills = request.args.get('skills').split(',') if request.args.get('skills') else None
     lowongan = request.args.get('lowongan') if request.args.get('lowongan') else None
@@ -258,7 +259,7 @@ def applicant_read_vacancy():
         return jsonify({"lowongan":result})
 
 
-#lihat lowongan baru
+#lihat detail lowongan baru
 @app.route('/applicant/vacancy/detail', methods=['GET'])
 def read_vacancy():
         cursor = mysql.connection.cursor()
@@ -285,7 +286,7 @@ def inputResume():
     if 'resume' not in request.files:
         return jsonify({"message":"no file"}), 400
 
-    job_name = request.form.get('job_name') if request.form.get('job_name') else None
+    # job_name = request.form.get('job_name') if request.form.get('job_name') else None
 
     #nyimpan resume ke folder python
     resumeFile = request.files['resume']
@@ -318,7 +319,7 @@ def inputResume():
 
     #masukkan data ke database
     cursor = mysql.connection.cursor()
-    cursor.execute('insert into resume(awards, certification, `college name`, `companies worked at`, contact, degree, designation, `email address`, language, `linkedin link`, location, name, skills, university, unlabelled, `worked as`, `year of graduation`,`years of experience`, file, job_name) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)',(award, certification, collegeName, companies, contact, degree, designation, email, language, linkedin, location, name, skills, university, unlabelled, worked, graduation, experience, resumeName, job_name))
+    cursor.execute('insert into resume(awards, certification, `college name`, `companies worked at`, contact, degree, designation, `email address`, language, `linkedin link`, location, name, skills, university, unlabelled, `worked as`, `year of graduation`,`years of experience`, file, job_name) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)',(award, certification, collegeName, companies, contact, degree, designation, email, language, linkedin, location, name, skills, university, unlabelled, worked, graduation, experience, resumeName, "job_name"))
     mysql.connection.commit()
     cursor.close()
     
@@ -327,15 +328,15 @@ def inputResume():
 
 
 #membaca file resume milik pelamar
-@app.route('/hr/resume-file',methods=['GET'])
+@app.route('/hr/read/resume-file', methods=['GET'])
 def openResumeFile():
-     resumeFileName = request.args.get('file-name')
-     filePath = f'./resume/{resumeFileName}'
-     return send_file(filePath,as_attachment=True)
-
+    resumeFileName = request.args.get('file-name')
+    filePath = f'resume/{resumeFileName}'
+    
+    try:
+        return send_file(filePath, as_attachment=True, download_name=resumeFileName)
+    except Exception as e:
+        return f'Error: {e}'
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-

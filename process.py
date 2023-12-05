@@ -68,7 +68,7 @@ def calculateResume(resumeFile, skills):
     else:
         totalScore = 0
 
-    return totalScore + hasSkill
+    return str(totalScore + hasSkill)
 
 
 #mengekripsikan password menjadi md5
@@ -92,8 +92,7 @@ def featureExtraction(resume, feature):
 
 
 resume = './test/resume_2.pdf'
-seeResume(resume)
-skills_to_check = ['Flask', 'NextJs', 'Python', 'SQL']
+skills_to_check = ['Flask']
 calculateResume(resume,skills_to_check)
 
-print(featureExtraction(resume,"SKILLS"))
+print(calculateResume(resume, skills_to_check))
